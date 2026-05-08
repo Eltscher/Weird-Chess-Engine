@@ -2,7 +2,7 @@
 #include <cmath>
 
 void addMove(MoveList& list, int from, int to,
-             PieceType promotion = NONE) {
+             PieceType promotion) {
     list.moves[list.count].from      = from;
     list.moves[list.count].to        = to;
     list.moves[list.count].promotion = promotion;

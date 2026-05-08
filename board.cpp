@@ -91,11 +91,3 @@ void printBoard(const Board& board) {
     std::cout << "Am Zug: " << (board.sideToMove == WHITE ? "Weiß" : "Schwarz") << "\n";
 }
 // Brett im Terminal
-
-int main() {
-    Board board;
-    setupStartPosition(board);
-    printBoard(board);
-    return 0;
-}
-// Board initialisieren, Startposition einrichten und ausgeben
