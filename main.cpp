@@ -1,21 +1,27 @@
-#include "move_generation.h"
-#include "move_validation.h"  // Kennt jetzt board.h UND move_generation.h
+#include "search.h"
 #include <iostream>
 
 int main() {
-    Board board;                      // Brett erstellen
-    setupStartPosition(board);        // Figuren aufstellen
-    printBoard(board);                // Brett anzeigen
+    Board board;
+    setupStartPosition(board);
+    printBoard(board);
 
-    MoveList moves = generateAllMoves(board);              // Züge generieren
-    std::cout << "Mögliche Züge: " << moves.count << "\n"; // Anzahl ausgeben
+    std::cout << "Engine denkt...\n";
 
-    if (isCheckmate(board))
-        std::cout << "Schachmatt!\n";
-    else if (isStalemate(board))
-        std::cout << "Patt!\n";
-    else
-        std::cout << "Spiel läuft.\n";
-    
-    return 0;  // Programm erfolgreich beendet
+    SearchResult result = findBestMove(board, 4);
+
+    int fromFile = result.bestMove.from % 8;
+    int fromRank = result.bestMove.from / 8;
+    int toFile   = result.bestMove.to   % 8;
+    int toRank   = result.bestMove.to   / 8;
+
+    char files[] = "abcdefgh";
+    std::cout << "Bester Zug: "
+              << files[fromFile] << (fromRank + 1)
+              << " -> "
+              << files[toFile]   << (toRank + 1)
+              << "\n";
+    std::cout << "Score: " << result.score << "\n";
+
+    return 0;
 }
