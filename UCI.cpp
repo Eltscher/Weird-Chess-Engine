@@ -35,24 +35,53 @@ void applyMovesFromString(Board& board, const std::string& movesStr) {
         if (token == "moves") continue;
         Move move = parseMoveString(board, token);
         applyMove(board, move);
-        board.sideToMove = (board.sideToMove == WHITE) ? BLACK : WHITE;
     }
 }
 // Wendet eine ganze Reihe von Zügen auf das Brett an
 
-Board parsePosition(const std::string& line) {
-    Board board;
-    setupStartPosition(board);
-
-    if (line.find("startpos") != std::string::npos) {
+    Board parsePosition(const std::string& line) {
+        Board board;
         setupStartPosition(board);
-        size_t movesPos = line.find("moves");
-        if (movesPos != std::string::npos)
-            applyMovesFromString(board, line.substr(movesPos));
-    }
 
-    return board;
-}
+        size_t movesPos = line.find("moves");
+        if (movesPos == std::string::npos)
+            return board;
+
+        std::istringstream ss(line.substr(movesPos + 6));
+        std::string token;
+
+        while (ss >> token) {
+            if (token.size() < 4) continue;  // Ungültige Züge überspringen
+
+            int fromFile = token[0] - 'a';
+            int fromRank = token[1] - '1';
+            int toFile   = token[2] - 'a';
+            int toRank   = token[3] - '1';
+
+            // Bounds check
+            if (fromFile < 0 || fromFile > 7 || fromRank < 0 || fromRank > 7 ||
+                toFile   < 0 || toFile   > 7 || toRank   < 0 || toRank   > 7)
+                continue;
+
+            Move move;
+            move.from      = squareIndex(fromFile, fromRank);
+            move.to        = squareIndex(toFile,   toRank);
+            move.promotion = NONE;
+
+            if (token.size() == 5) {
+                switch (token[4]) {
+                    case 'q': move.promotion = QUEEN;  break;
+                    case 'r': move.promotion = ROOK;   break;
+                    case 'b': move.promotion = BISHOP; break;
+                    case 'n': move.promotion = KNIGHT; break;
+                }
+            }
+
+            applyMove(board, move);
+        }
+
+        return board;
+    }   
 // Liest die Position aus dem UCI 
 
 std::string moveToString(const Move& move) {
@@ -60,9 +89,9 @@ std::string moveToString(const Move& move) {
     std::string result = "";
 
     result += files[move.from % 8];
-    result += ('1' + move.from / 8);
+    result += (char)('1' + (move.from / 8));
     result += files[move.to % 8];
-    result += ('1' + move.to / 8);
+    result += (char)('1' + (move.to / 8));
 
     if (move.promotion != NONE) {
         switch (move.promotion) {
@@ -80,7 +109,7 @@ std::string moveToString(const Move& move) {
 
 void uciLoop() {
     std::cout << "id name WeirdChessEngine\n";
-    std::cout << "id author Du\n";
+    std::cout << "id author Leon Eltscher\n";
     std::cout << "uciok\n";
     std::cout.flush();
 
@@ -106,14 +135,19 @@ void uciLoop() {
 
         else if (line.substr(0, 8) == "position") {
             board = parsePosition(line);
+            // Sicherstellen dass sideToMove korrekt ist
+            if (line.find("moves") == std::string::npos)
+                board.sideToMove = WHITE;
         }
 // UCI-Position setzen
 
         else if (line.substr(0, 2) == "go") {
-            SearchResult result = findBestMove(board, 4);
-            std::cout << "bestmove " << moveToString(result.bestMove) << "\n";
-            std::cout.flush();
-        }
+    SearchResult result = findBestMove(board, 4);
+    std::string move = moveToString(result.bestMove);
+    std::cerr << "DEBUG: [" << move << "] len=" << move.size() << "\n";
+    std::cout << "bestmove " << move << "\n";
+    std::cout.flush();
+}
 // UCI-Suchbefehl
 
         else if (line == "quit") {

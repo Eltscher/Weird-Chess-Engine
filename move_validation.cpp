@@ -1,61 +1,85 @@
 #include "move_validation.h"
 
 void applyMove(Board& board, const Move& move) {
-    Square& from = board.squares[move.from];
-    Square& to   = board.squares[move.to];
+    Square from = board.squares[move.from];
 
-    to.piece   = from.piece;
-    to.color   = from.color;
-    to.isEmpty = false;
+    board.squares[move.to].piece   = from.piece;
+    board.squares[move.to].color   = from.color;
+    board.squares[move.to].isEmpty = false;
 
-    from.piece   = NONE;
-    from.color   = WHITE;
-    from.isEmpty = true;
+    board.squares[move.from].piece   = NONE;
+    board.squares[move.from].color   = WHITE;
+    board.squares[move.from].isEmpty = true;
 
 //Führt einen Zug aus
 
-        if (move.promotion != NONE) {
-            to.piece = move.promotion; // Umwandlung bei Bauern
-        }
+    if (move.promotion != NONE)
+        board.squares[move.to].piece = move.promotion;
     
     if (from.piece == PAWN) {
-        int fromFile = move.from % 8;
-        int fromRank = move.from / 8;
-        int toFile   = move.to % 8;
-        int toRank   = move.to / 8;
-
-        if (fromFile != toFile && board.squares[move.to].isEmpty) {
-            int capturedPawnIdx = (board.sideToMove == WHITE)
-                ? move.to - 8
-                : move.to + 8;
-            board.squares[capturedPawnIdx].piece   = NONE;
-            board.squares[capturedPawnIdx].color   = WHITE;
-            board.squares[capturedPawnIdx].isEmpty = true;
+            int fromFile = move.from % 8;
+            int toFile   = move.to % 8;
+            if (fromFile != toFile && board.enPassantSquare == move.to) {
+                int capturedPawnIdx = (from.color == WHITE)
+                    ? move.to - 8
+                    : move.to + 8;
+                board.squares[capturedPawnIdx].piece   = NONE;
+                board.squares[capturedPawnIdx].color   = WHITE;
+                board.squares[capturedPawnIdx].isEmpty = true;
             }
-    }
+            if (std::abs(move.to - move.from) == 16)
+                board.enPassantSquare = (move.from + move.to) / 2;
+            else
+                board.enPassantSquare = -1;
+        } else {
+            board.enPassantSquare = -1;
+        }
 // EN PASSANT-Logik
 
     if (from.piece == KING) {
-        int diff = move.to - move.from;
-        if (diff == 2) {
-            int rookFrom = move.from + 3;
-            int rookTo   = move.from + 1;
-            board.squares[rookTo].piece     = ROOK;
-            board.squares[rookTo].color     = board.squares[rookFrom].color;
-            board.squares[rookTo].isEmpty   = false;
-            board.squares[rookFrom].piece   = NONE;
-            board.squares[rookFrom].isEmpty = true;
+            int diff = move.to - move.from;
+            if (diff == 2) {
+                int rookFrom = move.from + 3;
+                int rookTo   = move.from + 1;
+                board.squares[rookTo].piece     = ROOK;
+                board.squares[rookTo].color     = from.color;
+                board.squares[rookTo].isEmpty   = false;
+                board.squares[rookFrom].piece   = NONE;
+                board.squares[rookFrom].isEmpty = true;
+            }
+            if (diff == -2) {
+                int rookFrom = move.from - 4;
+                int rookTo   = move.from - 1;
+                board.squares[rookTo].piece     = ROOK;
+                board.squares[rookTo].color     = from.color;
+                board.squares[rookTo].isEmpty   = false;
+                board.squares[rookFrom].piece   = NONE;
+                board.squares[rookFrom].isEmpty = true;
+            }
         }
-        if (diff == -2) {
-            int rookFrom = move.from - 4;
-            int rookTo   = move.from - 1;
-            board.squares[rookTo].piece     = ROOK;
-            board.squares[rookTo].color     = board.squares[rookFrom].color;
-            board.squares[rookTo].isEmpty   = false;
-            board.squares[rookFrom].piece   = NONE;
-            board.squares[rookFrom].isEmpty = true;
-        }
-    }
+        if (board.squares[squareIndex(4,0)].piece != KING ||
+        board.squares[squareIndex(4,0)].color != WHITE)
+        board.castlingRights &= ~(WHITE_KINGSIDE | WHITE_QUEENSIDE);
+
+    if (board.squares[squareIndex(4,7)].piece != KING ||
+        board.squares[squareIndex(4,7)].color != BLACK)
+        board.castlingRights &= ~(BLACK_KINGSIDE | BLACK_QUEENSIDE);
+
+    if (board.squares[squareIndex(0,0)].piece != ROOK ||
+        board.squares[squareIndex(0,0)].color != WHITE)
+        board.castlingRights &= ~WHITE_QUEENSIDE;
+
+    if (board.squares[squareIndex(7,0)].piece != ROOK ||
+        board.squares[squareIndex(7,0)].color != WHITE)
+        board.castlingRights &= ~WHITE_KINGSIDE;
+
+    if (board.squares[squareIndex(0,7)].piece != ROOK ||
+        board.squares[squareIndex(0,7)].color != BLACK)
+        board.castlingRights &= ~BLACK_QUEENSIDE;
+
+    if (board.squares[squareIndex(7,7)].piece != ROOK ||
+        board.squares[squareIndex(7,7)].color != BLACK)
+        board.castlingRights &= ~BLACK_KINGSIDE;
 
     board.sideToMove = (board.sideToMove == WHITE) ? BLACK : WHITE;
 }
