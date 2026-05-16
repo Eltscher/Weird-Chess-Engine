@@ -118,5 +118,4 @@ if (toFile >= 3 && toFile <= 4 &&
 |---|---|
 | `g++` not recognized | Install MinGW and set PATH |
 | Engine does not appear in Arena | Set Type to UCI in Engine Management |
-| Engine makes strange moves | Normal — that is the personality! |
 | Engine is too slow | Reduce search depth to 3 |
