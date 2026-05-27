@@ -162,34 +162,8 @@ void generateKingMoves(const Board& board, int idx,
         if (isEmpty(board, target) || isEnemy(board, target, us))
             addMove(list, idx, target);
     }
-// König
-
-if (us == WHITE && (board.castlingRights & WHITE_KINGSIDE)) {
-        if (isEmpty(board, squareIndex(5,0)) &&
-            isEmpty(board, squareIndex(6,0)))
-            addMove(list, idx, squareIndex(6,0));
-    }
-    if (us == BLACK && (board.castlingRights & BLACK_KINGSIDE)) {
-        if (isEmpty(board, squareIndex(5,7)) &&
-            isEmpty(board, squareIndex(6,7)))
-            addMove(list, idx, squareIndex(6,7));
-    }
-
-    // Rochade Damenseite
-    if (us == WHITE && (board.castlingRights & WHITE_QUEENSIDE)) {
-        if (isEmpty(board, squareIndex(1,0)) &&
-            isEmpty(board, squareIndex(2,0)) &&
-            isEmpty(board, squareIndex(3,0)))
-            addMove(list, idx, squareIndex(2,0));
-    }
-    if (us == BLACK && (board.castlingRights & BLACK_QUEENSIDE)) {
-        if (isEmpty(board, squareIndex(1,7)) &&
-            isEmpty(board, squareIndex(2,7)) &&
-            isEmpty(board, squareIndex(3,7)))
-            addMove(list, idx, squareIndex(2,7));
-    }
 }
-// Rochade
+// König — Rochade wird in generateLegalMoves geprüft
 
 MoveList generateAllMoves(const Board& board) {
     MoveList list;

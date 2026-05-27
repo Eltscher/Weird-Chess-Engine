@@ -116,6 +116,7 @@ void uciLoop() {
     std::string line;
     Board board;
     setupStartPosition(board);
+    std::vector<std::string> playedMoves;
 
     while (std::getline(std::cin, line)) {
 // UCI-Befehle lesen und verarbeiten

@@ -1,10 +1,9 @@
 #include "search.h"
+#include "quiescence.h"
 
 int negamax(Board board, int depth, int alpha, int beta) {
     if (depth == 0)
-        return evaluateBoard(board) * 
-               (board.sideToMove == WHITE ? 1 : -1);
-// Suche - Basis ist Negam -> Variante von Minmax
+        return quiescence(board, alpha, beta);
 
  MoveList moves = generateLegalMoves(board);
 

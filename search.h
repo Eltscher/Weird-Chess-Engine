@@ -2,6 +2,7 @@
 #define SEARCH_H
 
 #include "evaluation.h"
+#include "quiescence.h"
 #include <cstdlib>
 #include <ctime>
 

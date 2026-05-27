@@ -151,6 +151,48 @@ bool isLegalMove(Board board, const Move& move, Color us) {
 }
 // Prüft ob ein Zug legal ist, indem er ihn auf einem Kopie des Bretts ausführt
 
+static void addCastlingMoves(const Board& board, Color us, MoveList& list) {
+    if (isInCheck(board, us)) return;
+
+    Color enemy = (us == WHITE) ? BLACK : WHITE;
+
+    if (us == WHITE) {
+        if ((board.castlingRights & WHITE_KINGSIDE) &&
+            isEmpty(board, squareIndex(5,0)) &&
+            isEmpty(board, squareIndex(6,0)) &&
+            !isSquareAttacked(board, squareIndex(4,0), enemy) &&
+            !isSquareAttacked(board, squareIndex(5,0), enemy) &&
+            !isSquareAttacked(board, squareIndex(6,0), enemy))
+            addMove(list, squareIndex(4,0), squareIndex(6,0));
+
+        if ((board.castlingRights & WHITE_QUEENSIDE) &&
+            isEmpty(board, squareIndex(1,0)) &&
+            isEmpty(board, squareIndex(2,0)) &&
+            isEmpty(board, squareIndex(3,0)) &&
+            !isSquareAttacked(board, squareIndex(4,0), enemy) &&
+            !isSquareAttacked(board, squareIndex(3,0), enemy) &&
+            !isSquareAttacked(board, squareIndex(2,0), enemy))
+            addMove(list, squareIndex(4,0), squareIndex(2,0));
+    } else {
+        if ((board.castlingRights & BLACK_KINGSIDE) &&
+            isEmpty(board, squareIndex(5,7)) &&
+            isEmpty(board, squareIndex(6,7)) &&
+            !isSquareAttacked(board, squareIndex(4,7), enemy) &&
+            !isSquareAttacked(board, squareIndex(5,7), enemy) &&
+            !isSquareAttacked(board, squareIndex(6,7), enemy))
+            addMove(list, squareIndex(4,7), squareIndex(6,7));
+
+        if ((board.castlingRights & BLACK_QUEENSIDE) &&
+            isEmpty(board, squareIndex(1,7)) &&
+            isEmpty(board, squareIndex(2,7)) &&
+            isEmpty(board, squareIndex(3,7)) &&
+            !isSquareAttacked(board, squareIndex(4,7), enemy) &&
+            !isSquareAttacked(board, squareIndex(3,7), enemy) &&
+            !isSquareAttacked(board, squareIndex(2,7), enemy))
+            addMove(list, squareIndex(4,7), squareIndex(2,7));
+    }
+}
+
 MoveList generateLegalMoves(const Board& board) {
     MoveList pseudoLegal = generateAllMoves(board);
     MoveList legal;
@@ -163,6 +205,8 @@ MoveList generateLegalMoves(const Board& board) {
                            pseudoLegal.moves[i].to,
                            pseudoLegal.moves[i].promotion);
     }
+
+    addCastlingMoves(board, us, legal);
     return legal;
 }
 // Generiert alle legalen Züge, indem er die Pseudo-legalen Züge filtert

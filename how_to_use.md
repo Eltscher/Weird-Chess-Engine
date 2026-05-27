@@ -24,8 +24,12 @@ Weird Chess Engine/
 ├── move_validation.cpp
 ├── evaluation.h
 ├── evaluation.cpp
+├── quiescence.h
+├── quiescence.cpp
 ├── search.h
 ├── search.cpp
+├── opening_book.h
+├── opening_book.cpp
 ├── uci.h
 ├── uci.cpp
 └── main.cpp
@@ -36,10 +40,10 @@ Weird Chess Engine/
 Open a terminal (CMD or PowerShell) in the project folder and type:
 
 ```bash
-g++ -O2 -o chess main.cpp board.cpp move_generation.cpp move_validation.cpp evaluation.cpp search.cpp uci.cpp
+g++ -O2 -o Weird Chess Engine main.cpp board.cpp move_generation.cpp move_validation.cpp evaluation.cpp quiescence.cpp search.cpp uci.cpp opening_book.cpp
 ```
 
-This creates a `chess.exe` in your folder — that is your engine.
+This creates a `Weird Chess Engine.exe` in your folder — that is your engine.
 
 ---
 
@@ -87,7 +91,7 @@ Change the `4` as desired:
 After changing, recompile:
 
 ```bash
-g++ -O2 -o chess main.cpp board.cpp move_generation.cpp move_validation.cpp evaluation.cpp search.cpp uci.cpp
+g++ -O2 -o Weird Chess Engine main.cpp board.cpp move_generation.cpp move_validation.cpp evaluation.cpp quiescence.cpp search.cpp uci.cpp opening_book.cpp
 ```
 
 ---

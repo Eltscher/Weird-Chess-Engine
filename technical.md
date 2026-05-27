@@ -10,12 +10,14 @@ Protocol: UCI (Universal Chess Interface)
 
 ```
 main.cpp
-uci.cpp          - Reads UCI commands, talks to GUI
-search.cpp       - Finds the best move
-evaluation.cpp   - Scores positions
+uci.cpp              - Reads UCI commands, talks to GUI
+opening_book.cpp     - Opening book
+search.cpp           - Finds the best move
+quiescence.cpp       - Captures search
+evaluation.cpp       - Scores positions
 move_validation.cpp  - Filters illegal moves
 move_generation.cpp  - Generates all moves
-board.cpp    - Board state
+board.cpp            - Board state
 ```
 
 Each layer depends on the one below it. `board.cpp` is the foundation everything else builds on.
@@ -118,6 +120,11 @@ Components:
 
 ---
 
+### `quiescence.h` / `quiescence.cpp`
+Prevents the Horizon Effect. After normal search depth is reached, continues searching all captures until the position is quiet. Prevents the engine from missing obvious recaptures.
+
+---
+
 ### `search.h` / `search.cpp`
 Finds the best move using Negamax with Alpha-Beta pruning.
 
@@ -147,6 +154,11 @@ The personality bonus is added on top of the search score, making the engine unp
 **Search depth:** Default is 4 (looks 4 moves ahead). Can be changed in `search.cpp`.
 
 ---
+### `opening_book.h` / `opening_book.cpp`
+Engine plays instantly from the book for the first 8-10 moves. Randomly chooses between multiple valid continuations for unpredictability.
+Covered openings: Italian, Spanish, Sicilian, French, Caro-Kann, King's Gambit, Queen's Gambit, King's Indian, Nimzo-Indian, Gruenfeld, English, Reti, Catalan, and many more.
+
+---
 
 ### `uci.h` / `uci.cpp`
 Implements the UCI protocol so Arena and other GUIs can talk to the engine.
@@ -174,8 +186,8 @@ Engine sends:  bestmove g1f3
 
 | Limitation | Description |
 |---|---|
-| No time management | Engine always searches to depth 4, ignoring the clock |
-| No opening book | Engine calculates from scratch on move 1 |
+| No time management | Engine always searches to depth 4 (if not changed), ignoring the clock |
+| No transposition table | Same positions evaluated multiple times |
 | No endgame tables | Engine may struggle in simple endgames |
 | Basic evaluation | Only material + piece-square tables, no pawn structure |
 | No repetition detection | Engine does not avoid threefold repetition |
@@ -184,9 +196,8 @@ Engine sends:  bestmove g1f3
 
 ## Possible Improvements
 
+- Move Ordering — Sort captures and checks first for better pruning 
 - Time management - Stop searching when time is running low
-- Oening book - Preloaded common openings for faster, stronger play
-- Quiescence search - Serch captures further to avoid the horizon effect
 - Transposition table - Cache previously evaluated positions (Zobrist hashing)
 - Better evaluation - Pawn structure, king safety, mobility
 - Iterative deepening - Search depth 1, then 2, then 3... for better move ordering
