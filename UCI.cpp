@@ -1,6 +1,7 @@
 #include "uci.h"
+#include "time_management.h"
 
-Move parseMoveString(const Board& board, const std::string& moveStr) {
+Move parseMoveString(const std::string& moveStr) {
     int fromFile = moveStr[0] - 'a';
     int fromRank = moveStr[1] - '1';
     int toFile   = moveStr[2] - 'a';
@@ -33,7 +34,7 @@ void applyMovesFromString(Board& board, const std::string& movesStr) {
 
     while (ss >> token) {
         if (token == "moves") continue;
-        Move move = parseMoveString(board, token);
+        Move move = parseMoveString(token);
         applyMove(board, move);
     }
 }
@@ -142,11 +143,23 @@ void uciLoop() {
         }
 // UCI-Position setzen
 
-        else if (line.substr(0, 2) == "go") {
-    SearchResult result = findBestMove(board, 4);
-    std::string move = moveToString(result.bestMove);
-    std::cerr << "DEBUG: [" << move << "] len=" << move.size() << "\n";
-    std::cout << "bestmove " << move << "\n";
+else if (line.substr(0, 2) == "go") {
+    std::string moveStr;
+
+    if (hasBookMove(playedMoves)) {
+        Move bookMove = getBookMove(board, playedMoves);
+        moveStr = moveToString(bookMove);
+    } else {
+        // Zeit auslesen und Tiefe berechnen
+        TimeControl tc = parseTimeControl(line);
+        bool isWhite   = (board.sideToMove == WHITE);
+        int depth      = calculateDepth(tc, isWhite);
+
+        SearchResult result = findBestMove(board, depth);
+        moveStr = moveToString(result.bestMove);
+    }
+
+    std::cout << "bestmove " << moveStr << "\n";
     std::cout.flush();
 }
 // UCI-Suchbefehl
