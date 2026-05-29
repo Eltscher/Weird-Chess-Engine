@@ -98,7 +98,11 @@ SearchResult findBestMove(const Board& board, int depth) {
 
     MoveList moves = generateLegalMoves(board);
     SearchResult result;
-    result.score    = -999999;
+    result.score = -999999;
+    if (moves.count == 0) {
+        result.bestMove = {};
+        return result;
+    }
     result.bestMove = moves.moves[0];
 
     // Moves sortieren

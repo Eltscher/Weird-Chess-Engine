@@ -362,5 +362,7 @@ Move getBookMove(const Board& board, const std::vector<std::string>& playedMoves
         return move;
     }
 
-    return generateLegalMoves(board).moves[0];
+    MoveList legal = generateLegalMoves(board);
+    if (legal.count > 0) return legal.moves[0];
+    return Move{};
 }

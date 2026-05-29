@@ -137,9 +137,16 @@ void uciLoop() {
 
         else if (line.substr(0, 8) == "position") {
             board = parsePosition(line);
-            // Sicherstellen dass sideToMove korrekt ist
-            if (line.find("moves") == std::string::npos)
+            playedMoves.clear();
+            size_t movesPos = line.find("moves");
+            if (movesPos == std::string::npos) {
                 board.sideToMove = WHITE;
+            } else {
+                std::istringstream ss(line.substr(movesPos + 6));
+                std::string token;
+                while (ss >> token)
+                    playedMoves.push_back(token);
+            }
         }
 // UCI-Position setzen
 

@@ -17,4 +17,3 @@ TimeControl parseTimeControl(const std::string& line);
 int calculateDepth(const TimeControl& tc, bool isWhite);
 
 #endif
-
