@@ -156,6 +156,7 @@ else if (line.substr(0, 2) == "go") {
     if (hasBookMove(playedMoves)) {
         Move bookMove = getBookMove(board, playedMoves);
         moveStr = moveToString(bookMove);
+        std::cout << "info string Opening Book\n";
     } else {
         // Zeit auslesen und Tiefe berechnen
         TimeControl tc = parseTimeControl(line);
@@ -164,6 +165,10 @@ else if (line.substr(0, 2) == "go") {
 
         SearchResult result = findBestMove(board, depth);
         moveStr = moveToString(result.bestMove);
+
+        std::cout << "info depth " << result.depth
+                  << " score cp " << result.score
+                  << " pv " << moveStr << "\n";
     }
 
     std::cout << "bestmove " << moveStr << "\n";

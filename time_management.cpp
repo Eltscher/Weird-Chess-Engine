@@ -28,12 +28,12 @@ TimeControl parseTimeControl(const std::string& line) {
 int calculateDepth(const TimeControl& tc, bool isWhite) {
     // Feste Zeit pro Zug
     if (tc.movetime > 0) {
-        if (tc.movetime > 5000) return 6;
-        if (tc.movetime > 2000) return 5;
-        if (tc.movetime > 500)  return 4;
-        return 3;
+        if (tc.movetime > 5000) return 5;
+        if (tc.movetime > 2000) return 4;
+        if (tc.movetime > 500)  return 3;
+        return 2;
     }
-// Feste zeit pro Zug, falls vorgabe
+// Feste zeit pro Zug, falls vorgabe, kann angepasst werden
 
 int timeLeft = isWhite ? tc.wtime : tc.btime;
     int inc = isWhite ? tc.winc  : tc.binc;
@@ -46,10 +46,10 @@ int movesLeft = (tc.movestogo > 0) ? tc.movestogo : 30;
 int timePerMove = (timeLeft + inc * movesLeft) / movesLeft;
 //Berechnung der verbleibenden Züge bis zur Zeitkontrolle
 
-if (timePerMove > 10000) return 6;  // >10 Sekunden
-    if (timePerMove >  5000) return 5;  // >5 Sekunden
-    if (timePerMove >  1000) return 4;  // >1 Sekunde
-    if (timePerMove >   300) return 3;  // >300ms
-    return 2;                           // Notfall
+if (timePerMove > 10000) return 5;  // >10 Sekunden
+    if (timePerMove >  5000) return 4;  // >5 Sekunden
+    if (timePerMove >  1000) return 3;  // >1 Sekunde
+    if (timePerMove >   300) return 2;  // >300ms
+    return 1;                           // Notfall
 }
 // Wahl der Suchtiefe nach Zeit

@@ -1,7 +1,9 @@
 #include "uci.h"
+#include "transposition.h"
 #include <iostream>
 
 int main() {
+    initZobrist();
     uciLoop();
     return 0;
 }

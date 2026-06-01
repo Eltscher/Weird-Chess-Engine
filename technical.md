@@ -18,6 +18,8 @@ evaluation.cpp       - Scores positions
 move_validation.cpp  - Filters illegal moves
 move_generation.cpp  - Generates all moves
 board.cpp            - Board state
+time_management.cpp  - Calculates search depth based on clock
+transposition.cpp    - Zobrist hashing + caching
 ```
 
 Each layer depends on the one below it. `board.cpp` is the foundation everything else builds on.
@@ -126,20 +128,30 @@ Prevents the Horizon Effect. After normal search depth is reached, continues sea
 ---
 
 ### `search.h` / `search.cpp`
-Finds the best move using Negamax with Alpha-Beta pruning.
+Finds the best move using Negamax with Alpha-Beta pruning, Iterative Deepening and Null Move Pruning.
 
 Algorithm:
 ```
-negamax(position, depth):
-    if depth == 0 → evaluate position
-    for each legal move:
+negamax(position, depth, nullMoveAllowed):
+    probe transposition table
+    if depth == 0 → quiescence search
+    if nullMoveAllowed → try null move pruning
+    for each legal move (sorted by MVV-LVA):
         make move on copy
-        score = -negamax(copy, depth - 1)
+        score = -negamax(copy, depth - 1, true)
         if score > best → remember this move
+    store in transposition table
     return best score
 ```
 
-Alpha-Beta pruning skips branches that cannot possibly improve the result - this makes the search several times faster.
+Iterative Deepening: searches depth 1, then 2, then 3... up to maxDepth.
+Each iteration uses results from the previous one for better move ordering.
+
+Null Move Pruning: if passing the turn still results in a score >= beta,
+the branch is pruned. Disabled in check and endgame positions.
+
+Move Ordering (MVV-LVA): captures are searched first, sorted by
+Most Valuable Victim - Least Valuable Attacker.
 
 Personality system:
 ```cpp
@@ -180,14 +192,24 @@ GUI sends:     go
 Engine sends:  bestmove g1f3
 ```
 
+### `transposition.h` / `transposition.cpp`
+Implements Zobrist hashing and a transposition table.
+Prevents the same position from being evaluated multiple times.
+Stores exact scores, upper bounds (TT_ALPHA) and lower bounds (TT_BETA).
+
+---
+
+### `time_management.h` / `time_management.cpp`
+Reads wtime, btime, winc, binc and movetime from UCI go command.
+Calculates optimal search depth based on remaining time.
+Depth 1-5 depending on time per move.
+
 ---
 
 ## Known Limitations
 
 | Limitation | Description |
 |---|---|
-| No time management | Engine always searches to depth 4 (if not changed), ignoring the clock |
-| No transposition table | Same positions evaluated multiple times |
 | No endgame tables | Engine may struggle in simple endgames |
 | Basic evaluation | Only material + piece-square tables, no pawn structure |
 | No repetition detection | Engine does not avoid threefold repetition |
@@ -196,8 +218,8 @@ Engine sends:  bestmove g1f3
 
 ## Possible Improvements
 
-- Move Ordering — Sort captures and checks first for better pruning 
-- Time management - Stop searching when time is running low
-- Transposition table - Cache previously evaluated positions (Zobrist hashing)
 - Better evaluation - Pawn structure, king safety, mobility
-- Iterative deepening - Search depth 1, then 2, then 3... for better move ordering
+- Late Move Reduction — reduce depth for moves later in the list
+- Endgame tables — perfect play in simple endgames
+- Repetition detection — avoid drawing in winning positions
+- NNUE — neural network evaluation like Stockfish

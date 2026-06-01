@@ -1,5 +1,6 @@
 #include "search.h"
 #include "quiescence.h"
+#include "transposition.h"
 
 // Figurenwerte fuer MVV-LVA
 static const int MVV_LVA_VALUES[7] = {
@@ -58,7 +59,26 @@ int personalityBonus(const Board& board, const Move& move) {
 }
 // Personality Bonus -changeable
 
-int negamax(Board board, int depth, int alpha, int beta) {
+// Erkenmung ob Endspiel
+bool isEndgame(const Board& board) {
+    int pieceCount = 0;
+    for (int i = 0; i < 64; i++) {
+        if (!board.squares[i].isEmpty &&
+             board.squares[i].piece != PAWN &&
+             board.squares[i].piece != KING)
+            pieceCount++;
+    }
+    return pieceCount <= 4; // Wenig Figuren = Endspiel
+}
+
+int negamax(Board board, int depth, int alpha, int beta,
+            bool nullMoveAllowed) {
+    // Transposition Table abfragen
+    uint64_t hash = computeHash(board);
+    int ttScore;
+    if (ttProbe(hash, depth, alpha, beta, ttScore))
+        return ttScore;
+
     if (depth == 0)
         return quiescence(board, alpha, beta);
 
@@ -69,58 +89,90 @@ int negamax(Board board, int depth, int alpha, int beta) {
             return -100000;
         return 0;
     }
+    
+    // Null Move Pruning
+    if (nullMoveAllowed &&
+        depth >= 3 &&
+        !isInCheck(board, board.sideToMove) &&
+        !isEndgame(board)) {
 
-    // Move Ordering — Schlaege zuerst!
+        // Passzug machen
+        Board nullBoard = board;
+        nullBoard.sideToMove = (board.sideToMove == WHITE) ? BLACK : WHITE;
+        nullBoard.enPassantSquare = -1;
+
+        // Mit reduzierter Tiefe suchen (R=2)
+        int nullScore = -negamax(nullBoard, depth - 3, -beta, -beta + 1, false);
+
+        if (nullScore >= beta) {
+            ttStore(hash, beta, depth, TT_BETA);
+            return beta;
+        }
+    }
+
     sortMoves(board, moves);
 
-    int best = -999999;
+    int best    = -999999;
+    TTFlag flag = TT_ALPHA;
 
     for (int i = 0; i < moves.count; i++) {
         Board copy = board;
         applyMove(copy, moves.moves[i]);
 
-        int score = -negamax(copy, depth - 1, -beta, -alpha);
+        int score = -negamax(copy, depth - 1, -beta, -alpha, true);
 
-        if (score > best)
+        if (score > best) {
             best = score;
-        if (score > alpha)
-            alpha = score;
-        if (alpha >= beta)
-            break;
+            if (score > alpha) {
+                alpha = score;
+                flag  = TT_EXACT;
+            }
+        }
+        if (alpha >= beta) {
+            ttStore(hash, beta, depth, TT_BETA);
+            return beta;
+        }
     }
 
+    ttStore(hash, best, depth, flag);
     return best;
 }
-// Negamax mit Alpha-Beta Pruning
+// Negamax mit Alpha-Beta-Schnitt und Transposition Table
 
-SearchResult findBestMove(const Board& board, int depth) {
+SearchResult findBestMove(const Board& board, int maxDepth) {
     srand(time(nullptr));
 
     MoveList moves = generateLegalMoves(board);
     SearchResult result;
     result.score = -999999;
-    if (moves.count == 0) {
-        result.bestMove = {};
-        return result;
-    }
     result.bestMove = moves.moves[0];
+    result.depth    = 1;
 
-    // Moves sortieren
-    sortMoves(board, moves);
+    for (int depth = 1; depth <= maxDepth; depth++) {
+        int        bestScore    = -999999;
+        Move       bestMove     = moves.moves[0];
 
-    for (int i = 0; i < moves.count; i++) {
-        Board copy = board;
-        applyMove(copy, moves.moves[i]);
+        sortMoves(board, moves);
 
-        int score = -negamax(copy, depth - 1, -999999, 999999);
+        for (int i = 0; i < moves.count; i++) {
+            Board copy = board;
+            applyMove(copy, moves.moves[i]);
 
-        // Personality Bonus nur auf oberster Ebene
-        score += personalityBonus(board, moves.moves[i]);
+            int score = -negamax(copy, depth - 1, -999999, 999999, true);
 
-        if (score > result.score) {
-            result.score    = score;
-            result.bestMove = moves.moves[i];
+            // Personality Bonus nur auf oberster Ebene
+            score += personalityBonus(board, moves.moves[i]);
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove  = moves.moves[i];
+            }
         }
+
+        // Ergebnis dieser Tiefe speichern
+        result.score    = bestScore;
+        result.bestMove = bestMove;
+        result.depth    = depth;
     }
 
     return result;
