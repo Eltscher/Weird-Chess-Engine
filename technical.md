@@ -108,17 +108,16 @@ Scores a position as a number from White's perspective.
 - Zero → Equal position
 
 Components:
-1. Material value - Each piece has a base value:
-
-| Piece | Value |
-|---|---|
-| Pawn | 100 |
-| Knight | 320 |
-| Bishop | 330 |
-| Rook | 500 |
-| Queen | 900 |
-
-2. Piece-square tables - Bonus points based on where a piece stands. For example knights in the center get +20, knights in corners get -50.
+1. Material value
+2. Piece-square tables (endgame-aware King table)
+3. Pawn structure:
+   - Doubled pawns: -30 per extra pawn on same file
+   - Isolated pawns: -20 if no pawns on adjacent files
+4. King safety (middlegame only):
+   - Pawn shield: +10 per pawn in front of king
+   - King in center: -20
+5. Rook activity:
+   - Open file bonus: +25
 
 ---
 
@@ -210,9 +209,10 @@ Depth 1-5 depending on time per move.
 
 | Limitation | Description |
 |---|---|
-| No endgame tables | Engine may struggle in simple endgames |
-| Basic evaluation | Only material + piece-square tables, no pawn structure |
-| No repetition detection | Engine does not avoid threefold repetition |
+| No repetition detection | May repeat moves in drawn positions |
+| No endgame tables | Struggles in K+P vs K endgames |
+| No NNUE | Uses handcrafted evaluation instead of neural network |
+| Basic pawn evaluation | No passed pawns or pawn chains |
 
 ---
 

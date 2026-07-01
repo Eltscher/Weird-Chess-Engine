@@ -53,7 +53,7 @@ int personalityBonus(const Board& board, const Move& move) {
         toRank >= 3 && toRank <= 4)
         bonus += 30;
 
-    bonus += rand() % 40;
+    bonus += rand() % 70;
 
     return bonus;
 }
@@ -114,12 +114,37 @@ int negamax(Board board, int depth, int alpha, int beta,
 
     int best    = -999999;
     TTFlag flag = TT_ALPHA;
+    int    movesSearched = 0;
 
     for (int i = 0; i < moves.count; i++) {
         Board copy = board;
         applyMove(copy, moves.moves[i]);
 
-        int score = -negamax(copy, depth - 1, -beta, -alpha, true);
+        int score;
+        bool isCapture = !board.squares[moves.moves[i].to].isEmpty;
+        bool inCheck   = isInCheck(copy, copy.sideToMove);
+        //LMR
+
+        if (movesSearched >= 3 &&
+            depth >= 3 &&
+            !isCapture &&
+            !inCheck &&
+            !isInCheck(board, board.sideToMove)) {
+
+            int reduction = 1;
+            if (movesSearched >= 6) reduction = 2;
+
+            score = -negamax(copy, depth - 1 - reduction,
+                             -alpha - 1, -alpha, true);
+
+            if (score > alpha)
+                score = -negamax(copy, depth - 1, -beta, -alpha, true);
+
+        } else {
+            score = -negamax(copy, depth - 1, -beta, -alpha, true);
+        }
+
+        movesSearched++;
 
         if (score > best) {
             best = score;

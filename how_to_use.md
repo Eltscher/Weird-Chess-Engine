@@ -91,7 +91,7 @@ Change the `4` as desired:
 After changing, recompile:
 
 ```bash
-g++ -O2 -o Weird Chess Engine main.cpp board.cpp move_generation.cpp move_validation.cpp evaluation.cpp quiescence.cpp search.cpp uci.cpp opening_book.cpp
+g++ -O2 -o Weird Chess Engine main.cpp board.cpp move_generation.cpp move_validation.cpp evaluation.cpp quiescence.cpp search.cpp uci.cpp opening_book.cpp time_management.cpp transposition.cpp
 ```
 
 ---
